@@ -1,5 +1,6 @@
 'use client';
 
+import { promises } from 'dns';
 import { Vollkorn } from 'next/font/google';
 import Image from 'next/image'
 import React, { useEffect, useState, EventTarget } from 'react';
@@ -14,27 +15,35 @@ export default function Home() {
 	function getRandomInt(max) {
 		return Math.floor(Math.random() * max);
 	  }
-	async function boucle(number_of_victory, square, solution, i) {
-
-		console.log("on tien le bon bout ", number_of_victory)
-		setTimeout(() => {
-			solution.push(getRandomInt(5))
+	  async function boucle(number_of_victory, square, solution, i) {
+		return new Promise(async (resolve) => {
+		  console.log("on tient le bon bout ", number_of_victory);
+		  setTimeout(async () => {
+			solution.push(getRandomInt(5));
 			square[solution[i]].animate(
-				[
-					{ transform: 'scale(1)' },
-					{ transform: 'scale(1.3)' }
-				],
-				{
-					duration: 1000,
-				}
+			  [
+				{ transform: 'scale(1)' },
+				{ transform: 'scale(1.3)' }
+			  ],
+			  {
+				duration: 1000,
+			  }
 			);
 			console.log("Delayed for 1 second.");
-			if (number_of_victory != 0)
-		  		boucle(number_of_victory - 1, square, solution, i + 1)
-		  }, 1000);	
-	}
+			if (number_of_victory !== 0) {
+			  await boucle(number_of_victory - 1, square, solution, i + 1);
+			}
+			resolve(); // Resolve the promise when the timeout is done
+		  }, 1000);
+		});
+	  }
 
-	const cliqueur_start = (event) => {
+	const waitOneSecond = () => {
+		return new Promise((resolve) => {
+			setTimeout(resolve, 1000);
+		});
+	}
+	const cliqueur_start = async (event) => {
 		if (mode_de_jeux == 'in game')
 			return 
 		mode_de_jeux = 'in game'
@@ -43,7 +52,8 @@ export default function Home() {
 		if (mode_enable == 'Hard')
 		{
 			console.log("allo la france")
-			boucle(number_of_victory + 3, square, solution, 0);
+			await boucle(number_of_victory + 3, square, solution, 0);
+			await waitOneSecond();
 			console.log("je veut attendre ")
 		}	
 	}
