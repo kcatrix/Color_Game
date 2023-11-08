@@ -3,7 +3,8 @@
 import { promises } from 'dns';
 import { Vollkorn } from 'next/font/google';
 import Image from 'next/image'
-import React, { useEffect, useState, EventTarget } from 'react';
+import React, { useEffect, useState } from 'react';
+
 
 
 export default function Home() {
@@ -12,6 +13,34 @@ export default function Home() {
 	let mode_enable = 'Hard'
 	let number_of_victory = 0
 	let enable = false
+	const [lvl, setLvl] = useState(1);
+
+
+	function looser(event){
+		event.target.style.boxShadow = "0 0 5px 2px red";
+		setTimeout(async () => {
+			event.target.style.boxShadow = "none";
+		}, 1000);
+	}
+
+	function winner(square) {
+		square.forEach((square) => {
+			square.style.boxShadow = "0 0 5px 2px green";
+		});
+		setTimeout(async () => {
+			square.forEach((square) => {
+				square.style.boxShadow = "none";
+			});
+		}, 1000);
+	}
+
+	function winnersolo(square) {
+		square.style.boxShadow = "0 0 5px 2px green";
+		setTimeout(async () => {
+			square.style.boxShadow = "none";
+		}, 1000);
+	}
+	
 
 	function getRandomInt(max) {
 		return Math.floor(Math.random() * max);
@@ -44,6 +73,9 @@ export default function Home() {
 			setTimeout(resolve, 1000);
 		});
 	}
+
+	
+
 	const cliqueur_start = async (event) => {
 		if (mode_de_jeux == 'in game')
 			return
@@ -89,12 +121,14 @@ export default function Home() {
 
 	const verif = (event) => {
 		let solution = localStorage.getItem("solution")
-		let square = document.querySelectorAll(".square");
 		let words = []
+		if (!solution)
+			return
 		if (event.target.id == solution[0])
 		{
 			if (solution?.length != 1)
 			{
+				winnersolo(event.target)
 				words = solution.split(',');
 				words.shift();
 				localStorage.setItem("solution", words)
@@ -102,6 +136,10 @@ export default function Home() {
 			}
 			else if (words?.length == 0)
 			{
+				let square = document.querySelectorAll(".square");
+				winner(square)
+				setLvl(lvl + 1);
+				console.log(lvl)
 				number_of_victory++
 				mode_de_jeux = 'no game'
 				localStorage.clear();
@@ -110,6 +148,10 @@ export default function Home() {
 		}
 		else
 		{
+			looser(event)
+			number_of_victory = 0
+			setLvl((bougie) => bougie = 1)
+			// alert("Perdu")
 			mode_de_jeux = 'no game'
 			localStorage.clear();
 			console.log("eat my bool")
@@ -149,7 +191,7 @@ export default function Home() {
 			<h1>The Great <span id="color-display">RGB</span> Guessing Game</h1>
 			<div id="stripe">
 				<button id="start">Start</button>
-				<span id="message"></span>
+				<span id="message">LVL {lvl}</span>
 				<button className="mode">Easy </button>
 				<button className="mode selected">Hard</button>
 			</div>
